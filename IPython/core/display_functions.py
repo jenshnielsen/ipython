@@ -5,8 +5,11 @@
 
 
 from binascii import b2a_hex
+from collections.abc import Mapping, MutableMapping, Sequence
 import os
 import sys
+from typing import Any
+
 
 __all__ = ['display', 'clear_output', 'publish_display_data', 'update_display', 'DisplayHandle']
 
@@ -33,7 +36,13 @@ def _merge(d1, d2):
 #-----------------------------------------------------------------------------
 
 # use * to indicate transient is keyword-only
-def publish_display_data(data, metadata=None, *, transient=None, **kwargs):
+def publish_display_data(
+    data: dict,
+    metadata: dict | None = None,
+    *,
+    transient: dict | None = None,
+    **kwargs: Any,
+) -> None:
     """Publish data and metadata to all frontends.
 
     See the ``display_data`` message in the messaging documentation for
@@ -76,22 +85,22 @@ def publish_display_data(data, metadata=None, *, transient=None, **kwargs):
     )
 
 
-def _new_id():
+def _new_id() -> str:
     """Generate a new random text id with urandom"""
     return b2a_hex(os.urandom(16)).decode('ascii')
 
 
 def display(
-    *objs,
-    include=None,
-    exclude=None,
-    metadata=None,
-    transient=None,
-    display_id=None,
-    raw=False,
-    clear=False,
-    **kwargs,
-):
+    *objs: object,
+    include: Sequence[str] | None = None,
+    exclude: Sequence[str] | None = None,
+    metadata: Mapping[str, Any] | None = None,
+    transient: MutableMapping[str, Any] | None = None,
+    display_id: str | bool | None = None,
+    raw: bool = False,
+    clear: bool = False,
+    **kwargs: Any,
+) -> None | DisplayHandle:
     """Display a Python object in all frontends.
 
     By default all representations will be computed and sent to the frontends.
@@ -287,7 +296,7 @@ def display(
 
 
 # use * for keyword-only display_id arg
-def update_display(obj, *, display_id, **kwargs):
+def update_display(obj: object, *, display_id: str, **kwargs: Any) -> None:
     """Update an existing display by id
 
     Parameters
@@ -320,15 +329,15 @@ class DisplayHandle:
 
     """
 
-    def __init__(self, display_id=None):
+    def __init__(self, display_id: str | None = None):
         if display_id is None:
             display_id = _new_id()
         self.display_id = display_id
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<{} display_id={}>".format(self.__class__.__name__, self.display_id)
 
-    def display(self, obj, **kwargs):
+    def display(self, obj: object, **kwargs: Any) -> None:
         """Make a new display with my id, updating existing instances.
 
         Parameters
@@ -340,7 +349,7 @@ class DisplayHandle:
         """
         display(obj, display_id=self.display_id, **kwargs)
 
-    def update(self, obj, **kwargs):
+    def update(self, obj: object, **kwargs: Any) -> None:
         """Update existing displays with my id
 
         Parameters
@@ -353,7 +362,7 @@ class DisplayHandle:
         update_display(obj, display_id=self.display_id, **kwargs)
 
 
-def clear_output(wait=False):
+def clear_output(wait: bool = False) -> None:
     """Clear the output of the current cell receiving output.
 
     Parameters
